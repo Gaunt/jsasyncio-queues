@@ -1,2 +1,2 @@
 # jsasyncio-queues
-A Queue inspired by Pytho asyncio.Queue
+A Queue inspired by Python's asyncio.Queue
