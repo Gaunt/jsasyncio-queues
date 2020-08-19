@@ -1,0 +1,22 @@
+{
+  "name": "jsasyncio-queues",
+  "version": "1.0.0",
+  "description": "A Queue inspired by Python's asyncio.Queue",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha src/test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gaunt/jsasyncio-queues.git"
+  },
+  "keywords": [
+    "queue"
+  ],
+  "author": "Gaunt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gaunt/jsasyncio-queues/issues"
+  },
+  "homepage": "https://github.com/Gaunt/jsasyncio-queues#readme"
+}
