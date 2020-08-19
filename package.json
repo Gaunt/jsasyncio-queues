@@ -18,5 +18,10 @@
   "bugs": {
     "url": "https://github.com/Gaunt/jsasyncio-queues/issues"
   },
-  "homepage": "https://github.com/Gaunt/jsasyncio-queues#readme"
+  "homepage": "https://github.com/Gaunt/jsasyncio-queues#readme",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.1.1",
+    "nyc": "^15.1.0"
+  }
 }
