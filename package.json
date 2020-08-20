@@ -1,6 +1,6 @@
 {
   "name": "jsasyncio-queues",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Queue inspired by Python's asyncio.Queue",
   "main": "index.js",
   "scripts": {
