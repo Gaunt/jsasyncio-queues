@@ -2,7 +2,7 @@
   "name": "jsasyncio-queues",
   "version": "1.0.0",
   "description": "A Queue inspired by Python's asyncio.Queue",
-  "main": "src/queues.js",
+  "main": "index.js",
   "scripts": {
     "test": "mocha src/test"
   },
