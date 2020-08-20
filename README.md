@@ -1,2 +1,4 @@
 # jsasyncio-queues
-A Queue inspired by Python's asyncio.Queue
+
+A queue inspired by python's asyncio.Queue,
+useful for coordinating producer and consumer coroutines.

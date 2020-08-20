@@ -101,13 +101,14 @@ then full() is never true.`, function () {
             var q = new Queue(1);
             await q.put('first elm');
             assert.deepEqual(q.queue, ['first elm']);
-            (async () => { // test with getNowait
+            var p = (async () => { // test with getNowait
                 var elm = q.getNowait();
                 expect(elm).to.equal('first elm');
             })();
             await q.put('second elm');
             assert.deepEqual(q.queue, ['second elm']);
-            (async () => { // test with getNowait
+            await p;
+            var p =(async () => { // test with get
                 assert.deepEqual(q.queue, ['second elm']);
                 expect(q.full()).to.equal(true);
                 var elm = await q.get();
@@ -117,6 +118,7 @@ then full() is never true.`, function () {
             await q.put('third elm');
             assert.deepEqual(q.queue, ['third elm']);
             var elm = await q.get();
+            await p;
             expect(elm).to.equal('third elm');
             expect(q.empty()).to.equal(true);
         });
