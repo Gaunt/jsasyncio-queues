@@ -77,16 +77,16 @@ then full() is never true.`, function () {
             var elm = await q1.get();
             assert.equal(elm, 2);
         });
-        it('If queue is empty, wait until an item is available.', async function() {
+        it('If queue is empty, wait until an item is available.', async function () {
             var q = new Queue(1);
-            setTimeout(() => {
+            (async () => {
                 q.putNowait('elm putted nowait');
-            }, 0);
+            })();
             var elm = await q.get();
             expect(elm).to.equal('elm putted nowait');
-            setTimeout(() => {
+            (async () => {
                 q.put('elm putted');
-            }, 0);
+            })();
             var elm = await q.get();
             expect(elm).to.equal('elm putted');
         })
@@ -97,7 +97,7 @@ then full() is never true.`, function () {
             await q1.put(3);
             assert.deepEqual(q1.queue, [1, 2, 3]);
         });
-        it('If queue is empty, wait until an item is available.', async function() {
+        it('If queue is empty, wait until an item is available.', async function () {
             var q = new Queue(1);
             await q.put('first elm');
             assert.deepEqual(q.queue, ['first elm']);
@@ -121,33 +121,46 @@ then full() is never true.`, function () {
             expect(q.empty()).to.equal(true);
         });
     });
-    describe('#join()', function() {
+    describe('#join()', function () {
         it("Block until all items in the queue have been gotten and processed.", async function () {
             var q = new Queue();
-            await q.put(1);
-            await q.put(2);
-            expect(q.unfinishedTasks).to.equal(2);
-            (async () => {
+            var worker = (async () => {
                 q.taskDone();
                 expect(q.unfinishedTasks).to.equal(1);
                 q.taskDone();
                 expect(q.unfinishedTasks).to.equal(0);
-            })();
-            await q.join();
-            expect(q.finished).to.equal(null);
-            await q.join();
-            await q.put(1);
-            await q.put(2);
-            expect(q.unfinishedTasks).to.equal(2);
-            (async () => {
-                q.taskDone();
-                expect(q.unfinishedTasks).to.equal(1);
-                q.taskDone();
-                expect(q.unfinishedTasks).to.equal(0);
-            })();
-            await q.join();
-            expect(q.finished).to.equal(null);
-            expect(q.taskDone).to.throw();
+            });
+            for (const _ of [1, 2]) { // test twice to assure state is reset
+                await q.put(1);
+                await q.put(2);
+                expect(q.unfinishedTasks).to.equal(2);
+                worker();
+                await q.join();
+                expect(q.finished).to.equal(null);
+                await q.join();
+            }
+        });
+    });
+    describe('producer-consumer', function () {
+        it('consumer should consume all items produced by producer', async function () {
+            const queue = new Queue();
+            const consumedItems = [];
+            const producer = async (queue) => {
+                for(let i = 0; i<5; i++) {
+                    await queue.put(i);
+                }
+                await queue.join();
+            }
+            const consumer = async (queue) => {
+                while(true) {
+                    consumedItems.push(await queue.get());
+                    queue.taskDone();
+                }
+            }
+            const prod = producer(queue);
+            const cons = consumer(queue);
+            await prod;
+            expect(consumedItems).to.deep.equal([0,1,2,3,4]);
         });
     });
 });
