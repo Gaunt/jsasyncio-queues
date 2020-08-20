@@ -52,7 +52,7 @@ class Queue {
     /** Remove and return an item from the queue.
     Return an item if one is immediately available, else throws.*/
     getNowait() {
-        var elm = this.queue.pop();
+        var elm = this.queue.shift();
         if (elm === undefined) {
             throw new Error('Queue Empty');
         }
@@ -85,7 +85,7 @@ class Queue {
         }
         this.unfinishedTasks--;
         if (this.unfinishedTasks === 0) {
-            while(this.joiners.length){
+            while (this.joiners.length) {
                 this.wakeupNext(this.joiners);
             }
         }
@@ -104,7 +104,7 @@ class Queue {
         }
     }
     wakeupNext(waiters) {
-        var waiter = waiters.pop();
+        var waiter = waiters.shift();
         if (waiter) {
             waiter();
         }
