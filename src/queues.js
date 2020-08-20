@@ -11,6 +11,7 @@ class Queue {
         this.unfinishedTasks = 0;
         this.getters = [];
         this.putters = [];
+        this.joiners = [];
         this.queue = [];
         this.finished = null;
     }
@@ -84,9 +85,8 @@ class Queue {
         }
         this.unfinishedTasks--;
         if (this.unfinishedTasks === 0) {
-            if (this.finished) {
-                this.finished();
-                this.finished = null;
+            while(this.joiners.length){
+                this.wakeupNext(this.joiners);
             }
         }
     }
@@ -99,7 +99,7 @@ class Queue {
     async join() {
         if (this.unfinishedTasks > 0) {
             await new Promise((resolve) => {
-                this.finished = resolve;
+                this.joiners.push(resolve);
             });
         }
     }
