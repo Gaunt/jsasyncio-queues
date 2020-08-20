@@ -12,6 +12,7 @@ async function producer(queue) {
     }
     await queue.join();
 }
+
 async function consumer(queue) {
     while (true) {
         var item = await queue.get();
