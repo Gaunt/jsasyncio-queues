@@ -1,6 +1,6 @@
 # jsasyncio-queues
 
-Queues roughly inspired by python's asyncio.Queue, asyncio.LifoQueue, asyncio.PriorityQueue
+Queues with API roughly inspired by python's asyncio.Queue, asyncio.LifoQueue, asyncio.PriorityQueue
 useful for coordinating producer and consumer coroutines.
 
 ## Instalation
@@ -147,6 +147,5 @@ const { sleep } = require("../queues");
 
 (async (){
     await sleep(10); // sleep for 10 seconds
-
 })();
 ```
