@@ -1,4 +1,4 @@
-var { Queue, LifoQueue, PriorityQueue } = require('../queues')
+var { Queue, LifoQueue, PriorityQueue } = require('../src/queues')
 var expect = require('chai').expect;
 var assert = require('assert');
 
