@@ -7,7 +7,7 @@ describe('utils', function () {
         it('should sleep for 0.01 second', async function () {
             var before = Date.now();
             await sleep(0.01);
-            expect(Date.now() - before).to.be.greaterThan(10);
+            expect(Date.now() - before).to.be.greaterThan(9);
         });
     });
 });
