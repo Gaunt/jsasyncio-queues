@@ -22,7 +22,8 @@
   "dependencies": {
     "chai": "^4.2.0",
     "mocha": "^8.1.1",
-    "nyc": "^15.1.0"
+    "nyc": "^15.1.0",
+    "tinyqueue": "^2.0.3"
   },
   "devDependencies": {
     "require-self": "^0.2.3"

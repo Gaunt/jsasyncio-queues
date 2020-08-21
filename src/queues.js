@@ -1,11 +1,15 @@
+// @ts-check
+
 /** A queue inspired by python's asyncio.Queue,
  * useful for coordinating producer and consumer coroutines. 
-*/
+ * @template T
+ */
 class Queue {
     /**
     * Creates a queue with a maximum number of elements in maxsize.
     * If not specified, the queue can hold an unlimited number of items.
-     */
+    * @param {number} maxsize
+    */
     constructor(maxsize = 0) {
         this.maxsize = maxsize;
         this.unfinishedTasks = 0;
@@ -15,12 +19,14 @@ class Queue {
         this.queue = [];
         this.finished = null;
     }
-    /** @returns {boolean} true if the queue is empty. */
+    /** @returns {boolean} - true if the queue is empty. */
     empty() {
         return this.queue.length === 0;
     }
     /** Put an item into the queue. If the queue is full, wait until a free
-        slot is available before adding item. */
+    *   slot is available before adding item.
+    *   @param {T} item
+    */
     async put(item) {
         while (this.full()) {
             await new Promise((resolve) => {
@@ -30,7 +36,9 @@ class Queue {
         return this.putNowait(item);
     }
     /** Put an item into the queue without blocking.
-        If no free slot is immediately available, throws. */
+    * If no free slot is immediately available, throws. 
+    * @param {T} item    
+    */
     putNowait(item) {
         if (this.queue.length === this.maxsize && this.maxsize) {
             throw new Error('Queue Full');
@@ -40,7 +48,9 @@ class Queue {
         this.wakeupNext(this.getters);
     }
     /** Remove and return an item from the queue.
-    If queue is empty, wait until an item is available. */
+    * If queue is empty, wait until an item is available. 
+    * @returns {Promise<T>}    
+    */
     async get() {
         while (this.empty()) {
             await new Promise((resolve) => {
@@ -50,7 +60,9 @@ class Queue {
         return this.getNowait();
     }
     /** Remove and return an item from the queue.
-    Return an item if one is immediately available, else throws.*/
+    * Return an item if one is immediately available, else throws.
+    * @returns {T}
+    */
     getNowait() {
         var elm = this.queue.shift();
         if (elm === undefined) {
@@ -59,11 +71,11 @@ class Queue {
         this.wakeupNext(this.putters);
         return elm;
     }
-    /** @returns {boolean} true if the queue is full. */
+    /** @returns {boolean} - true if the queue is full. */
     full() {
         return (this.queue.length >= this.maxsize) && (this.maxsize !== 0);
     }
-    /** @returns {number} number of items currently in the queue. */
+    /** @returns {number} - number of items currently in the queue. */
     qsize() {
         return this.queue.length;
     }
