@@ -4,7 +4,7 @@
   "description": "A Queue inspired by Python's asyncio.Queue",
   "main": "index.js",
   "scripts": {
-    "test": "mocha src/test"
+    "test": "mocha test"
   },
   "repository": {
     "type": "git",
