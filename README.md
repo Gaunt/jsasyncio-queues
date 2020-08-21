@@ -1,6 +1,6 @@
 # jsasyncio-queues
 
-Queues inspired by python's asyncio.Queue, asyncio.LifoQueue, asyncio.PriorityQueue
+Queues roughly inspired by python's asyncio.Queue, asyncio.LifoQueue, asyncio.PriorityQueue
 useful for coordinating producer and consumer coroutines.
 
 ## Instalation
@@ -97,8 +97,56 @@ queue.putNowait('') // Argument of type '""' is not assignable to parameter of t
 
 the same interface as Queue, but retrieves most recently added entries first (last in, first out).
 
+```javascript
+var { LifoQueue } = require('jsasyncio-queues');
+
+(async () => {
+    var queue = new LifoQueue(2);
+        await queue.put(2);
+        queue.put(1);
+        queue.put(3);
+        var item = await queue.get();
+        console.log(item); // 1
+        item = await queue.get();
+        console.log(item); // 3
+        item = await queue.get();
+        console.log(item); // 2
+})();
+```
+
 ### PriortyQueue
 
 a priority queue, built on tinyqueue
 
-## Other Synchronization Primitives
+```javascript
+var { PriorityQueue } = require('jsasyncio-queues');
+
+(async () => {
+    var queue = new PriorityQueue(2);
+        await queue.put(2);
+        queue.put(1);
+        queue.put(3);
+        var item = await queue.get();
+        console.log(item); // 1
+        item = await queue.get();
+        console.log(item); // 2
+        item = await queue.get();
+        console.log(item); // 3
+})();
+
+```
+
+## Other functions
+
+some other utility functions consistent with asyncio are reimplemented
+
+### sleep
+
+```javascript
+const { sleep } = require("../queues");
+
+(async (){
+    await sleep(10); // sleep for 10 seconds
+
+})();
+```

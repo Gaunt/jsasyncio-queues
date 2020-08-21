@@ -1,4 +1,6 @@
 // @ts-check
+require = require("esm")(module);
+const TinyQueue = require('tinyqueue');
 
 /** A queue inspired by python's asyncio.Queue,
  * useful for coordinating producer and consumer coroutines. 
@@ -64,12 +66,15 @@ class Queue {
     * @returns {T}
     */
     getNowait() {
-        var elm = this.queue.shift();
+        var elm = this._get();
         if (elm === undefined) {
             throw new Error('Queue Empty');
         }
         this.wakeupNext(this.putters);
         return elm;
+    }
+    _get() {
+        return this.queue.shift();
     }
     /** @returns {boolean} - true if the queue is full. */
     full() {
@@ -123,4 +128,32 @@ class Queue {
     }
 }
 
+/** A LIFO Queue the same interface as Queue,
+ * but retrieves most recently added entries first (last in, first out).
+ * @template T
+ * @extends Queue<T>
+ */
+class LifoQueue extends Queue {
+    _get() {
+        return this.queue.pop();
+    }
+}
+
+
+/** A priority queue, built on top of tinyqueue
+ * @template T
+ * @extends Queue<T>
+ */
+class PriorityQueue extends Queue {
+    constructor(maxsize=0) {
+        super(maxsize);
+        this.queue = new TinyQueue();
+    }
+    _get() {
+        return this.queue.pop();
+    }
+}
+
 module.exports.Queue = Queue;
+module.exports.LifoQueue = LifoQueue;
+module.exports.PriorityQueue = PriorityQueue;

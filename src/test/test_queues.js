@@ -1,4 +1,4 @@
-var { Queue } = require('../queues')
+var { Queue, LifoQueue, PriorityQueue } = require('../queues')
 var expect = require('chai').expect;
 var assert = require('assert');
 
@@ -171,5 +171,38 @@ then full() is never true.`, function () {
             await prod;
             expect(consumedItems).to.deep.equal([0, 1, 2, 3, 4]);
         });
+    });
+});
+
+
+describe('LifoQueue', function () {
+    it('retrieves most recently added entries first (last in, first out).', async function () {
+        var queue = new LifoQueue(2);
+        await queue.put(1);
+        queue.put(2);
+        queue.put(3);
+        assert.deepEqual(queue.queue, [1, 2]);
+        var item = await queue.get();
+        expect(item).to.equal(2);
+        assert.deepEqual(queue.queue, [1, 3]);
+        item = await queue.get();
+        expect(item).to.equal(3);
+        assert.deepEqual(queue.queue, [1]);
+    });
+});
+
+
+describe('PriorityQueue', function () {
+    it('retrieves most recently added entries first (last in, first out).', async function () {
+        var queue = new PriorityQueue(2);
+        await queue.put(2);
+        queue.put(1);
+        queue.put(3);
+        var item = await queue.get();
+        expect(item).to.equal(1);
+        item = await queue.get();
+        expect(item).to.equal(2);
+        item = await queue.get();
+        expect(item).to.equal(3);
     });
 });
