@@ -3,21 +3,18 @@
 Queues with API roughly inspired by python's asyncio.Queue, asyncio.LifoQueue, asyncio.PriorityQueue
 useful for coordinating producer and consumer coroutines.
 
-## Instalation
+## Installation
 
 ```
 npm i jsasyncio-queues
 ```
 
-## Examples
+## Usage Examples
 
 ### Simple producer-consumer
 
 ```javascript
-// @ts-check
-
-var { Queue, QueueFinished } = require('jsasyncio-queues');
-
+const { Queue } = require('jsasyncio-queues');
 
 /** @param {Queue<number>} queue */
 async function producer(queue) {
@@ -31,7 +28,7 @@ async function producer(queue) {
 async function consumer(queue) {
     for await (let item of queue) {
         console.log(`consumed ${item}`);
-        queue.taskDone(); // indicates task processing completition
+        queue.taskDone();  // indicates task processing completition
     }
 }
 
@@ -41,7 +38,7 @@ async function consumer(queue) {
     const prod = producer(queue);
     const cons = consumer(queue);
     await prod;
-    queue.finish(); // cancels awaiting consumer
+    queue.finish();  // cancels awaiting consumer
 })();
 ```
 
@@ -84,6 +81,51 @@ async function worker(name, queue) {
     console.log(`total expected sleep time: ${totalSleepTime} seconds`);
 })();
 ```
+
+### Explicit cancellation
+
+The queues support cancelation of awaiting consumer tasks. You can eather use async iteration as in the first example,
+which ends when finish is called, or catch `QueueFinished` exception explicitly.
+
+```javascript
+const { Queue, QueueFinished } = require('jsasyncio-queues');
+
+
+/** @param {Queue<number>} queue */
+async function producer(queue) {
+    for (let i = 0; i < 5; i++) {
+        await queue.put(i);
+    }
+    await queue.join();
+}
+
+/** @param {Queue<number>} queue */
+async function consumer(queue) {
+    try {
+        while (true) {
+            var item = await queue.get();
+            console.log(`consumed ${item}`);
+            queue.taskDone();
+        }
+    }  catch (e) {
+        if (e instanceof QueueFinished) {
+            console.log(e.message);
+        } else {
+            throw e;
+        }
+    }
+}
+
+(async () => {
+    /** @type {Queue<number>} */
+    const queue = new Queue();
+    const prod = producer(queue);
+    const cons = consumer(queue);
+    await prod;
+    queue.finish('Queue finished');
+})();
+```
+
 ### ts type anotations support
 
 ```javascript

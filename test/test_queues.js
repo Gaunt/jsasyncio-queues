@@ -2,6 +2,7 @@ var { Queue, LifoQueue, PriorityQueue, QueueFinished } = require('../src/queues'
 var expect = require('chai').expect;
 var assert = require('assert');
 const { finished } = require('stream');
+const { sleep } = require('../src/utils');
 
 
 describe('Queue', function () {
