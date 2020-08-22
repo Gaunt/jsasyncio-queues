@@ -1,6 +1,7 @@
-var { Queue, LifoQueue, PriorityQueue } = require('../src/queues')
+var { Queue, LifoQueue, PriorityQueue, QueueFinished } = require('../src/queues')
 var expect = require('chai').expect;
 var assert = require('assert');
+const { finished } = require('stream');
 
 
 describe('Queue', function () {
@@ -149,7 +150,41 @@ then full() is never true.`, function () {
                 queue.taskDone();
                 expect(() => queue.taskDone()).to.throw('taskDone called too many times');
             });
-    })
+    });
+    describe('#finish', function() {
+        const consumer = async (queue) => {
+            try {
+                await queue.get();
+            } catch (e) {
+                expect(e).to.be.instanceof(QueueFinished);
+            }
+        };
+        it('should cancel awaiting get', async function () {
+            const queue = new Queue();
+            consumer(queue);
+            queue.finish();
+        });
+    });
+    describe('#[Symbol.asyncIterator]', function() {
+        const consumer = async (queue) => {
+            let items = [];
+            for await (let item of queue) {
+                items.push(item);
+                queue.taskDone();
+            }
+            return items;
+        };
+        it('should iterate over queued items', async function() {
+            const queue = new Queue();
+            queue.putNowait(1);
+            queue.putNowait(2);
+            var cons = consumer(queue);
+            await queue.join();
+            queue.finish();
+            var items = await cons;
+            expect(items).to.deep.equal([1, 2]);
+        });
+    });
     describe('producer-consumer', function () {
         it('consumer should consume all items produced by producer', async function () {
             const queue = new Queue();

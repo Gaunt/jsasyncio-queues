@@ -1,4 +1,5 @@
 // @ts-check
+
 require = require("esm")(module);
 const TinyQueue = require('tinyqueue');
 
@@ -15,9 +16,9 @@ class Queue {
     constructor(maxsize = 0) {
         this.maxsize = maxsize;
         this.unfinishedTasks = 0;
-        this.getters = [];
-        this.putters = [];
-        this.joiners = [];
+        this.getters = new SchedFIFO();
+        this.putters = new SchedFIFO();
+        this.joiners = new SchedFIFO();
         this.queue = [];
         this.finished = null;
     }
@@ -31,8 +32,8 @@ class Queue {
     */
     async put(item) {
         while (this.full()) {
-            await new Promise((resolve) => {
-                this.putters.push(resolve);
+            await new Promise((resolve, reject) => {
+                this.putters.schedule(new Waiter(resolve, reject));
             })
         }
         return this.putNowait(item);
@@ -47,7 +48,7 @@ class Queue {
         }
         this.queue.push(item);
         this.unfinishedTasks++;
-        this.wakeupNext(this.getters);
+        this.getters.wakeupNext();
     }
     /** Remove and return an item from the queue.
     * If queue is empty, wait until an item is available. 
@@ -55,8 +56,8 @@ class Queue {
     */
     async get() {
         while (this.empty()) {
-            await new Promise((resolve) => {
-                this.getters.push(resolve);
+            await new Promise((resolve, reject) => {
+                this.getters.schedule(new Waiter(resolve, reject));
             });
         }
         return this.getNowait();
@@ -70,7 +71,7 @@ class Queue {
         if (elm === undefined) {
             throw new Error('Queue Empty');
         }
-        this.wakeupNext(this.putters);
+        this.putters.wakeupNext();
         return elm;
     }
     _get() {
@@ -103,7 +104,7 @@ class Queue {
         this.unfinishedTasks--;
         if (this.unfinishedTasks === 0) {
             while (this.joiners.length) {
-                this.wakeupNext(this.joiners);
+                this.joiners.wakeupNext();
             }
         }
     }
@@ -115,16 +116,82 @@ class Queue {
         When the count of unfinished tasks drops to zero, join() unblocks. */
     async join() {
         if (this.unfinishedTasks > 0) {
-            await new Promise((resolve) => {
-                this.joiners.push(resolve);
+            await new Promise((resolve, reject) => {
+                this.joiners.schedule(new Waiter(resolve, reject));
             });
         }
     }
-    wakeupNext(waiters) {
-        var waiter = waiters.shift();
-        if (waiter) {
-            waiter();
+    async*[Symbol.asyncIterator]() {
+        try {
+            while (true) {
+                var item = await this.get();
+                yield item;
+            }
+        } catch (e) {
+            if (e instanceof QueueFinished) {
+                return;
+            } else {
+                throw e;
+            }
         }
+    }
+    /** rejects awaiting consumers
+     * @param {string} message
+     * @returns {number} - number of consumers rejected
+     */
+    finish(message = 'queue finished') {
+        return this.getters.cancel(new QueueFinished(message));
+    }
+}
+
+
+class Waiter {
+    /**
+     * @param {Function} resolve 
+     * @param {Function} reject 
+     */
+    constructor(resolve, reject) {
+        this.resolve = resolve;
+        this.reject = reject;
+    }
+}
+
+
+class SchedFIFO {
+    constructor() {
+        /** @type {Waiter[]} */
+        this.waiters = [];
+    }
+    wakeupNext() {
+        if (this.length > 0) {
+            var waiter = this.waiters.shift();
+            waiter.resolve();
+        }
+    }
+    /** @param {Waiter} waiter */
+    schedule(waiter) {
+        this.waiters.push(waiter);
+    }
+    /** rejects all waiters and clean up the queue
+     * @param {any} message
+     * @returns {number} - length before cancelation */
+    cancel(message) {
+        this.waiters.forEach((waiter) => waiter.reject(message));
+        const len = this.length;
+        this.waiters = [];
+        return len;
+    }
+    /** @returns {number} - length of the queue */
+    get length() {
+        return this.waiters.length;
+    }
+}
+
+/** an exception pass to rejected waiters */
+class QueueFinished {
+    /** @param {string} message */
+    constructor(message) {
+        this.message = message;
     }
 }
 
@@ -145,7 +212,7 @@ class LifoQueue extends Queue {
  * @extends Queue<T>
  */
 class PriorityQueue extends Queue {
-    constructor(maxsize=0) {
+    constructor(maxsize = 0) {
         super(maxsize);
         this.queue = new TinyQueue();
     }
@@ -154,6 +221,8 @@ class PriorityQueue extends Queue {
     }
 }
 
+
 module.exports.Queue = Queue;
 module.exports.LifoQueue = LifoQueue;
 module.exports.PriorityQueue = PriorityQueue;
+module.exports.QueueFinished = QueueFinished;

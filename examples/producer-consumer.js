@@ -1,6 +1,6 @@
 // @ts-check
 
-var { Queue } = require('jsasyncio-queues');
+var { Queue, QueueFinished } = require('jsasyncio-queues');
 
 
 /** @param {Queue<number>} queue */
@@ -13,8 +13,7 @@ async function producer(queue) {
 
 /** @param {Queue<number>} queue */
 async function consumer(queue) {
-    while (true) {
-        var item = await queue.get();
+    for await (let item of queue) {
         console.log(`consumed ${item}`);
         queue.taskDone();
     }
@@ -26,4 +25,5 @@ async function consumer(queue) {
     const prod = producer(queue);
     const cons = consumer(queue);
     await prod;
+    queue.finish('Queue finished');
 })();

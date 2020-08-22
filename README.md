@@ -14,28 +14,34 @@ npm i jsasyncio-queues
 ### Simple producer-consumer
 
 ```javascript
-var { Queue } = require('jsasyncio-queues');
+// @ts-check
 
+var { Queue, QueueFinished } = require('jsasyncio-queues');
+
+
+/** @param {Queue<number>} queue */
 async function producer(queue) {
     for (let i = 0; i < 5; i++) {
         await queue.put(i);
     }
-    await queue.join(); // wait for consumer to send taskDone for each consumed item
+    await queue.join(); // waits until all tasks are processed
 }
 
+/** @param {Queue<number>} queue */
 async function consumer(queue) {
-    while (true) {
-        var item = await queue.get();
+    for await (let item of queue) {
         console.log(`consumed ${item}`);
-        queue.taskDone();
+        queue.taskDone(); // indicates task processing completition
     }
 }
 
 (async () => {
+    /** @type {Queue<number>} */
     const queue = new Queue();
     const prod = producer(queue);
     const cons = consumer(queue);
     await prod;
+    queue.finish(); // cancels awaiting consumer
 })();
 ```
 
