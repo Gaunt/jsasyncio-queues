@@ -16,7 +16,6 @@ npm i jsasyncio-queues
 ```javascript
 const { Queue } = require('jsasyncio-queues');
 
-/** @param {Queue<number>} queue */
 async function producer(queue) {
     for (let i = 0; i < 5; i++) {
         await queue.put(i);
@@ -24,7 +23,6 @@ async function producer(queue) {
     await queue.join(); // waits until all tasks are processed
 }
 
-/** @param {Queue<number>} queue */
 async function consumer(queue) {
     for await (let item of queue) {
         console.log(`consumed ${item}`);
@@ -33,7 +31,6 @@ async function consumer(queue) {
 }
 
 (async () => {
-    /** @type {Queue<number>} */
     const queue = new Queue();
     const prod = producer(queue);
     const cons = consumer(queue);
@@ -47,7 +44,6 @@ async function consumer(queue) {
 ```javascript
 const {Queue, sleep} = require('jsasyncio-queues');
 
-/** @param {Queue<number>} queue */
 async function worker(name, queue) {
     while (true) {
         var sleepFor = await queue.get();
@@ -58,7 +54,6 @@ async function worker(name, queue) {
 }
 
 (async () => {
-    /** @type {Queue<number>} */
     const queue = new Queue();
     var totalSleepTime = 0;
 
@@ -82,7 +77,7 @@ async function worker(name, queue) {
 })();
 ```
 
-### Explicit cancellation
+### Cancellation
 
 The queues support cancelation of awaiting consumer tasks. You can eather use async iteration as in the first example,
 which ends when finish is called, or catch `QueueFinished` exception explicitly.
@@ -90,8 +85,6 @@ which ends when finish is called, or catch `QueueFinished` exception explicitly.
 ```javascript
 const { Queue, QueueFinished } = require('jsasyncio-queues');
 
-
-/** @param {Queue<number>} queue */
 async function producer(queue) {
     for (let i = 0; i < 5; i++) {
         await queue.put(i);
@@ -99,7 +92,6 @@ async function producer(queue) {
     await queue.join();
 }
 
-/** @param {Queue<number>} queue */
 async function consumer(queue) {
     try {
         while (true) {
@@ -117,7 +109,6 @@ async function consumer(queue) {
 }
 
 (async () => {
-    /** @type {Queue<number>} */
     const queue = new Queue();
     const prod = producer(queue);
     const cons = consumer(queue);
