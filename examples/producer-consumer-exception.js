@@ -20,12 +20,10 @@ async function consumer(queue) {
             queue.taskDone();
         }
     }  catch (e) {
-        if (e instanceof QueueFinished) {
-            console.log(e.message);
-        } else {
+        if (!(e instanceof QueueFinished)) {
             throw e;
-        }
-    }
+    }}
+    console.log('Queue finished');
 }
 
 (async () => {
@@ -34,5 +32,5 @@ async function consumer(queue) {
     const prod = producer(queue);
     const cons = consumer(queue);
     await prod;
-    queue.finish('Queue finished');
+    queue.finish();
 })();

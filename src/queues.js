@@ -166,7 +166,7 @@ class SchedFIFO {
         if (this.length > 0) {
             var waiter = this.waiters.shift();
             waiter.resolve();
-        }
+        }                                                                                                                                                   
     }
     /** @param {Waiter} waiter */
     schedule(waiter) {

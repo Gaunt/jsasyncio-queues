@@ -17,6 +17,7 @@ async function consumer(queue) {
         console.log(`consumed ${item}`);
         queue.taskDone();  // indicates task processing completition
     }
+    console.log(`consumer finished`);
 }
 
 (async () => {

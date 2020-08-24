@@ -1,8 +1,8 @@
-var { Queue, LifoQueue, PriorityQueue, QueueFinished } = require('../src/queues')
+// @ts-check
+
+var { Queue, LifoQueue, PriorityQueue, QueueFinished } = require('../src/queues');
 var expect = require('chai').expect;
 var assert = require('assert');
-const { finished } = require('stream');
-const { sleep } = require('../src/utils');
 
 
 describe('Queue', function () {
@@ -12,6 +12,32 @@ describe('Queue', function () {
         q1.putNowait(1);
         q1.putNowait(2);
     });
+    const producer = async (queue) => {
+        for (let i = 0; i < 3; i++) {
+            await queue.put(i);
+        }
+        await queue.join();
+    }
+    const consumer_iter = async (queue) => {
+        let items = [];
+        for await (let item of queue) {
+            items.push(item);
+            queue.taskDone();
+        }    
+        return items;
+    };
+    const consumer = async (queue) => {
+        let items = [];
+        try {
+            while(true) {
+                var item = await queue.get();
+                items.push(item);
+                queue.taskDone();    
+            }
+        } catch (e) {
+            return [items, e];
+        }
+    };
     describe('#empty()', function () {
         it("Returns true if the queue is empty,", function () {
             var q = new Queue(3);
@@ -153,33 +179,46 @@ then full() is never true.`, function () {
             });
     });
     describe('#finish', function() {
-        const consumer = async (queue) => {
-            try {
-                await queue.get();
-            } catch (e) {
-                expect(e).to.be.instanceof(QueueFinished);
-            }
-        };
         it('should cancel awaiting get', async function () {
             const queue = new Queue();
-            consumer(queue);
+            const prod = producer(queue);
+            const cons = consumer(queue);
+            await prod;
             queue.finish();
+            var [items, e] = await cons;
+            expect(items).to.deep.equal([0, 1, 2]);
+        });
+        it('should stop async iteration', async () => {
+            const queue = new Queue();
+            var cons = consumer_iter(queue);
+            await queue.put(1);
+            await queue.join();
+            queue.finish();
+            var items = await cons;
+            expect(items).to.deep.equal([1]);
+        });
+        it('should throw if other type of Error is send', async function () {
+            const queue = new Queue();
+            var cons = consumer_iter(queue);
+            await queue.put(1);
+            await queue.join();
+            queue.getters.cancel(new Error('different error'));
+            try {
+                var items = await cons;
+            } catch (e) {
+                expect(e.message).to.equal('different error');
+            }
+            
+            //expect(async () => await cons).
+
         });
     });
     describe('#[Symbol.asyncIterator]', function() {
-        const consumer = async (queue) => {
-            let items = [];
-            for await (let item of queue) {
-                items.push(item);
-                queue.taskDone();
-            }
-            return items;
-        };
         it('should iterate over queued items', async function() {
             const queue = new Queue();
             queue.putNowait(1);
             queue.putNowait(2);
-            var cons = consumer(queue);
+            var cons = consumer_iter(queue);
             await queue.join();
             queue.finish();
             var items = await cons;
