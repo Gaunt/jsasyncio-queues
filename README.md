@@ -1,6 +1,6 @@
-# jsasyncio-queues
+# jsasyncio-queues: Queues with API roughly inspired by python's asyncio.
 
-Queues with API roughly inspired by python's asyncio.Queue, asyncio.LifoQueue, asyncio.PriorityQueue
+Queues with API roughly inspired by python's asyncio. Queue, asyncio.LifoQueue, asyncio.PriorityQueue
 useful for coordinating producer and consumer coroutines.
 
 ## Installation
