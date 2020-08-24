@@ -1,3 +1,5 @@
+// @ts-check
+
 const {Queue, LifoQueue, PriorityQueue, QueueFinished} = require('./src/queues');
 const {sleep} = require('./src/utils');
 
