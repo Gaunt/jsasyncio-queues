@@ -19,13 +19,10 @@ async function consumer(queue) {
             console.log(`consumed ${item}`);
             queue.taskDone();
         }
-    } catch (e) {
+    }  catch (e) {
         if (e instanceof QueueFinished) {
             console.log('Queue finished');
-
-        } else {
-            throw e;
-        }
+        } else {throw e;}
     }
 }
 

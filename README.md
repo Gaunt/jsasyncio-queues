@@ -102,10 +102,8 @@ async function consumer(queue) {
     }  catch (e) {
         if (e instanceof QueueFinished) {
             console.log('Queue finished');
-
-    } else {
-        throw e;
-    }}
+        } else {throw e;}
+    }
 }
 
 (async () => {
